@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Idea Mixer — Creativity Studio</title>
+  <meta name="description" content="Pour your random topics into the glass. Shake them into a cocktail recipe — your ideas, distilled into something buildable." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Custom Properties ─────────────────────────────────────── */
+    :root {
+      --bg:           #EDE9E0;
+      --surface:      #FAF8F3;
+      --surface-2:    #F0ECE2;
+      --surface-dark: #3D2E22;
+      --accent:       #A8623A;
+      --accent-soft:  #F5E8DC;
+      --accent-dark:  #7D4528;
+      --gold:         #B89040;
+      --sage:         #6A8A58;
+      --rose:         #C47060;
+      --text:         #2C2318;
+      --text-2:       #5C4E3E;
+      --muted:        #9C8E7E;
+      --rim:          #DDD5C2;
+      --rim-2:        #CCC5B2;
+
+      --liq-0: #C8904A;
+      --liq-1: #90B848;
+      --liq-2: #D4B038;
+      --liq-3: #B06880;
+      --liq-4: #6898C0;
+      --liq-5: #90C0A0;
+
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-body:    'Jost', system-ui, sans-serif;
+      --ease-spring:  cubic-bezier(.34,1.56,.64,1);
+      --ease-liquid:  cubic-bezier(.25,.8,.4,1.2);
+    }
+
+    /* ── Reset ─────────────────────────────────────────────────── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      font-weight: 300;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Entrance animations ───────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shakerRock {
+      from { transform: rotate(-22deg) translateX(-8px); }
+      to   { transform: rotate(22deg)  translateX(8px); }
+    }
+    @keyframes chipPop {
+      from { transform: scale(0.8); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+    @keyframes bubbleRise {
+      0%   { transform: translateY(0);     opacity: 0.55; }
+      100% { transform: translateY(-80px); opacity: 0; }
+    }
+
+    /* ── Header ────────────────────────────────────────────────── */
+    header {
+      text-align: center;
+      padding: clamp(20px, 4vw, 40px) clamp(16px, 5vw, 40px) 0;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards;
+    }
+    .wordmark {
+      font-family: var(--font-display);
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      color: var(--accent);
+      letter-spacing: 0.03em;
+    }
+    .wordmark em { font-style: italic; }
+    .header-rule {
+      display: inline-block;
+      width: 1px; height: 14px;
+      background: var(--rim);
+      margin: 0 14px;
+      vertical-align: middle;
+    }
+    .header-sub {
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    /* ── Main stage ────────────────────────────────────────────── */
+    #main-stage {
+      display: grid;
+      grid-template-columns: clamp(240px, 34%, 320px) 1fr;
+      max-width: 880px;
+      margin: 0 auto;
+      padding: clamp(20px, 3vw, 32px) clamp(16px, 4vw, 40px) clamp(32px, 5vw, 48px);
+      gap: 0;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.12s forwards;
+    }
+
+    /* ── Glass panel ───────────────────────────────────────────── */
+    #glass-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: clamp(12px, 2vw, 16px) clamp(16px, 3vw, 32px) clamp(20px, 3vw, 32px);
+      border-right: 1px solid var(--rim);
+    }
+    #glass-wrap { position: relative; width: clamp(160px, 18vw, 210px); height: clamp(190px, 21vw, 250px); }
+    #glass-svg  { width: clamp(160px, 18vw, 210px); height: clamp(190px, 21vw, 250px); overflow: visible; }
+
+    /* Liquid layers fill upward */
+    .liq {
+      transform-box: fill-box;
+      transform-origin: bottom center;
+      transform: scaleY(0);
+      transition: transform 0.5s var(--ease-liquid);
+    }
+    .liq.on { transform: scaleY(1); }
+
+    #lime-g {
+      transform-origin: 168px 26px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    #salt-g { transition: opacity 0.35s; opacity: 0; }
+
+    /* Glass info wrapper (dots + status) */
+    #glass-info { display: flex; flex-direction: column; align-items: center; }
+
+    /* Progress dots */
+    #dots { display: flex; gap: 9px; margin-top: 22px; }
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      border: 1.5px solid var(--muted);
+      background: transparent;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .dot.on { background: var(--accent); border-color: var(--accent); }
+
+    /* Status */
+    #status {
+      margin-top: 11px;
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      transition: color 0.3s;
+    }
+    #status.full { color: var(--accent); }
+
+    /* ── Input panel ───────────────────────────────────────────── */
+
+    .section-label {
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 11px;
+    }
+
+    #ingredient-row { display: flex; gap: 8px; margin-bottom: 8px; }
+
+    #ing-input {
+      flex: 1;
+      padding: 10px 15px;
+      background: var(--surface);
+      border: 1px solid var(--rim);
+      border-radius: 5px;
+      font-family: var(--font-body);
+      font-size: 0.88rem;
+      font-weight: 300;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #ing-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(168,98,58,0.1);
+    }
+    #ing-input::placeholder { color: var(--muted); }
+
+    #add-btn {
+      width: 38px; height: 38px;
+      flex-shrink: 0;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.18s, transform 0.1s;
+    }
+    #add-btn:hover  { background: var(--accent-dark); }
+    #add-btn:active { transform: scale(0.93); }
+
+    /* Flash */
+    #flash {
+      font-size: 0.76rem;
+      color: var(--rose);
+      min-height: 9px;
+      margin-bottom: 4px;
+      opacity: 0;
+      transition: opacity 0.18s;
+    }
+    #flash.show { opacity: 1; }
+
+    /* Chips */
+    #chips { display: flex; flex-wrap: wrap; gap: 7px; min-height: 18px; margin-bottom: 11px; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 11px;
+      border-radius: 100px;
+      font-size: 0.8rem;
+      font-weight: 400;
+      animation: chipPop 0.22s var(--ease-spring) forwards;
+    }
+    .chip-x {
+      background: none; border: none; cursor: pointer;
+      color: inherit; opacity: 0.45;
+      font-size: 0.85rem; line-height: 1; padding: 0;
+      display: flex;
+      transition: opacity 0.15s;
+    }
+    .chip-x:hover { opacity: 0.9; }
+
+    .sep { height: 1px; background: var(--rim); margin: 0 0 18px; }
+
+    /* Context */
+    #ctx-row { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+    .opt-badge {
+      font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted); background: var(--surface-2); padding: 2px 6px; border-radius: 3px;
+    }
+    #ctx {
+      width: 100%;
+      padding: 9px 13px;
+      background: var(--surface-2);
+      border: 1px solid var(--rim);
+      border-radius: 5px;
+      font-family: var(--font-body);
+      font-size: 0.83rem; font-weight: 300;
+      color: var(--text);
+      resize: none; height: 72px;
+      outline: none; line-height: 1.55;
+      transition: border-color 0.2s;
+    }
+    #ctx:focus { border-color: var(--gold); }
+    #ctx::placeholder { color: var(--muted); }
+
+    /* ── Advanced Settings ─────────────────────────────────────── */
+    #adv-sep { margin-top: 18px; }
+
+    #adv-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      margin-top: 18px;
+      user-select: none;
+    }
+    .adv-arrow {
+      font-size: 0.6rem;
+      color: var(--muted);
+      display: inline-block;
+      transition: transform 0.2s;
+      line-height: 1;
+    }
+    .adv-arrow.open { transform: rotate(90deg); }
+    .adv-lbl {
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    #adv-body { display: none; padding-top: 12px; }
+
+    /* Build Complexity */
+    #build-btns { display: flex; gap: 7px; }
+    .build-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 6px;
+      border-radius: 10px;
+      border: 1.5px solid var(--rim);
+      background: var(--surface);
+      cursor: pointer;
+      font-family: var(--font-body);
+      gap: 3px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .build-btn:hover:not(.active-shoot):not(.active-cocktail):not(.active-barrel):not(.active-any) {
+      background: var(--surface-2);
+      border-color: var(--rim-2);
+    }
+    .bicon { font-size: 1.15rem; line-height: 1; }
+    .bname { font-size: 0.7rem; font-weight: 500; color: var(--text-2); }
+    .bsub  { font-size: 0.6rem; color: var(--muted); }
+
+    /* Active states */
+    .build-btn.active-shoot    { background: rgba(106,138,88,.1);  border-color: var(--sage);   }
+    .build-btn.active-cocktail { background: rgba(184,144,64,.1);  border-color: var(--gold);   }
+    .build-btn.active-barrel   { background: rgba(196,112,96,.1);  border-color: var(--rose);   }
+    .build-btn.active-any      { background: rgba(168,98,58,.1);   border-color: var(--accent); }
+    .build-btn.active-shoot    .bname { color: var(--sage);   }
+    .build-btn.active-cocktail .bname { color: var(--gold);   }
+    .build-btn.active-barrel   .bname { color: var(--rose);   }
+    .build-btn.active-any      .bname { color: var(--accent); }
+    .build-btn.active-shoot    .bsub,
+    .build-btn.active-cocktail .bsub,
+    .build-btn.active-barrel   .bsub,
+    .build-btn.active-any      .bsub  { opacity: 0.75; }
+
+    /* Wildness slider */
+    .vibe-wrap { margin-top: 18px; }
+    #vibe-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 9px;
+      font-size: 0.68rem;
+    }
+    .vibe-sage { color: var(--sage); font-weight: 400; }
+    .vibe-muted{ color: var(--muted);}
+    .vibe-rose { color: var(--rose); font-weight: 400; }
+
+    #vibe-slider {
+      width: 100%;
+      height: 4px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: linear-gradient(to right,
+        rgba(106,138,88,.35),
+        rgba(184,144,64,.35),
+        rgba(196,112,96,.35)
+      );
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+    #vibe-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    #vibe-slider:active::-webkit-slider-thumb { transform: scale(1.15); }
+    #vibe-slider::-moz-range-thumb {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+      cursor: pointer;
+    }
+    #vibe-value {
+      text-align: center;
+      font-size: 0.74rem;
+      color: var(--accent);
+      margin-top: 7px;
+      min-height: 16px;
+    }
+
+    /* Mix button */
+    #mix-btn {
+      width: 100%;
+      margin-top: 18px;
+      padding: 13px 24px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-family: var(--font-body);
+      font-size: 0.8rem; font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.18s, opacity 0.18s, transform 0.1s;
+    }
+    #mix-btn:hover:not(:disabled)  { background: var(--accent-dark); }
+    #mix-btn:active:not(:disabled) { transform: scale(0.99); }
+    #mix-btn:disabled { opacity: 0.38; cursor: not-allowed; }
+
+    /* ── Shaker overlay ────────────────────────────────────────── */
+    #shaker-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(237,233,224,0.95);
+      backdrop-filter: blur(4px);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.28s;
+    }
+    #shaker-overlay.show { opacity: 1; pointer-events: all; }
+    #shaker-svg {
+      width: 100px; height: 155px;
+      animation: shakerRock 0.5s ease-in-out infinite alternate;
+      transform-origin: center bottom;
+    }
+    .shaker-heading {
+      font-family: var(--font-display);
+      font-size: 2rem; color: var(--accent);
+      margin-top: 28px; letter-spacing: 0.02em;
+    }
+    .shaker-sub {
+      margin-top: 8px; font-size: 0.75rem;
+      color: var(--muted); letter-spacing: 0.06em;
+      max-width: 320px; text-align: center;
+    }
+
+    /* ── Error card ────────────────────────────────────────────── */
+    #error-card { display: none; max-width: 880px; margin: 0 auto 56px; padding: 0 40px; }
+    #error-card.show { display: block; animation: cardIn 0.4s ease forwards; }
+    .error-inner {
+      background: var(--surface); border: 1px solid #DEC4B4;
+      border-radius: 8px; padding: 36px; text-align: center;
+    }
+    .error-icon { font-size: 2.2rem; margin-bottom: 12px; }
+    .error-title { font-family: var(--font-display); font-size: 1.6rem; color: var(--rose); margin-bottom: 8px; }
+    .error-body  { font-size: 0.9rem; color: var(--text-2); margin-bottom: 22px; line-height: 1.6; }
+    .error-retry {
+      padding: 9px 22px; background: var(--accent); color: #fff;
+      border: none; border-radius: 5px; font-family: var(--font-body);
+      font-size: 0.78rem; font-weight: 500; letter-spacing: 0.07em;
+      text-transform: uppercase; cursor: pointer; transition: background 0.18s;
+    }
+    .error-retry:hover { background: var(--accent-dark); }
+
+    /* ── Recipe card ───────────────────────────────────────────── */
+    #recipe-card { display: none; max-width: 880px; margin: 0 auto 64px; padding: 0 40px; }
+    #recipe-card.show { display: block; animation: cardIn 0.5s ease forwards; }
+
+    .recipe-wrap {
+      background: var(--surface);
+      border: 1px solid var(--rim);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .r-head { padding: 30px 34px 22px; border-bottom: 1px solid var(--rim); }
+    .r-eyebrow {
+      font-size: 0.58rem; font-weight: 500; letter-spacing: 0.17em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 7px;
+    }
+    #r-name {
+      font-family: var(--font-display); font-size: 2.2rem;
+      color: var(--accent); line-height: 1.1; margin-bottom: 5px;
+    }
+    #r-tagline {
+      font-family: var(--font-display); font-style: italic;
+      font-size: 1.08rem; color: var(--text-2); margin-bottom: 20px;
+    }
+    /* Rating bar — single bar with 3 equal cells */
+    #r-badges { margin-bottom: 18px; }
+    .rating-bar {
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--rim);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .rating-cell {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 14px 12px;
+      border-right: 1px solid var(--rim);
+    }
+    .rating-cell:last-child { border-right: none; }
+    .rating-lbl {
+      font-size: 0.56rem;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .rating-val {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 500;
+      color: var(--sage);
+      line-height: 1;
+    }
+    .rating-val.g { font-size: 18px; }
+    /* Value-based colour overrides */
+    .rating-val.am { color: var(--gold); font-size: 18px; }
+    .rating-val.ro { color: var(--rose); }
+    #r-pills  { display: flex; flex-wrap: wrap; gap: 5px; }
+    .r-pill   { padding: 3px 9px; background: var(--accent-soft); border-radius: 100px; font-size: 0.73rem; color: var(--accent); }
+
+    /* Tabs */
+    .r-tabs { display: flex; border-bottom: 1px solid var(--rim); }
+    .tab-btn {
+      padding: 13px 22px; background: none; border: none;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      font-family: var(--font-display); font-size: 1rem;
+      color: var(--muted); cursor: pointer;
+      transition: color 0.18s, border-color 0.18s;
+    }
+    .tab-btn.on { color: var(--accent); border-bottom-color: var(--accent); }
+
+    .pane { display: none; padding: 26px 34px; }
+    .pane.on { display: block; }
+
+    .concept-txt { font-size: 0.97rem; color: var(--text-2); line-height: 1.72; margin-bottom: 18px; }
+    .concept-txt strong { color: var(--text); font-weight: 500; }
+
+    .served-box {
+      background: var(--accent-soft);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 5px 5px 0;
+      padding: 14px 18px;
+    }
+    .served-lbl { font-size: 0.58rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 5px; }
+    .served-txt { font-size: 0.9rem; color: var(--text-2); line-height: 1.6; }
+    .served-txt strong { color: var(--text); font-weight: 500; }
+
+    .problem-block { background: var(--surface-2); border-radius: 6px; padding: 18px 22px; margin-bottom: 14px; }
+    .block-lbl { font-size: 0.58rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .problem-txt { font-size: 0.9rem; color: var(--text-2); line-height: 1.65; }
+    .problem-txt strong { color: var(--text); font-weight: 500; }
+
+    .build-block { background: var(--surface-dark); border-radius: 6px; padding: 18px 22px; }
+    .build-block .block-lbl { color: rgba(255,255,255,.38); }
+    .steps { display: flex; flex-direction: column; gap: 13px; }
+    .step  { display: flex; gap: 12px; align-items: flex-start; }
+    .step-n {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      font-size: 0.68rem; font-weight: 500;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .step-t { font-size: 0.88rem; color: rgba(255,255,255,.78); line-height: 1.62; }
+    .step-t strong { color: #fff; font-weight: 500; }
+
+    /* Recipe footer */
+    .r-foot {
+      display: flex; gap: 9px;
+      padding: 18px 34px;
+      border-top: 1px solid var(--rim);
+      background: var(--bg);
+    }
+    .foot-btn {
+      padding: 9px 16px;
+      border: 1px solid var(--rim);
+      border-radius: 5px;
+      background: var(--surface);
+      font-family: var(--font-body);
+      font-size: 0.74rem; font-weight: 500;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--text-2); cursor: pointer;
+      transition: all 0.18s;
+    }
+    .foot-btn:hover { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+    .foot-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .foot-btn.primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+    .foot-btn:disabled { opacity: 0.38; cursor: not-allowed; }
+
+    /* ── Remix with a Twist ────────────────────────────────────── */
+    #twist-row {
+      display: none;
+      padding: 16px 34px 20px;
+      border-top: 1px solid var(--rim);
+    }
+    #twist-row.show { display: block; }
+    .twist-lbl {
+      font-size: 0.58rem; font-weight: 500;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 10px;
+    }
+    .twist-btns { display: flex; flex-wrap: wrap; gap: 7px; }
+    .twist-btn {
+      padding: 6px 14px;
+      border: 1.5px solid var(--rim);
+      border-radius: 100px;
+      background: var(--surface);
+      font-family: var(--font-body);
+      font-size: 0.74rem; font-weight: 400;
+      color: var(--text-2); cursor: pointer;
+      transition: all 0.18s;
+    }
+    .twist-btn:hover { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+
+    /* ── Input panel fluid ─────────────────────────────────────── */
+    #input-panel { padding: 16px 0 32px clamp(24px, 4vw, 44px); }
+
+    /* ── Recipe card fluid ─────────────────────────────────────── */
+    #recipe-card, #error-card { padding: 0 clamp(16px, 4vw, 40px); }
+    .r-head { padding: clamp(18px, 3vw, 30px) clamp(18px, 4vw, 34px) clamp(14px, 2vw, 22px); }
+    #r-name { font-size: clamp(1.7rem, 3.5vw, 2.2rem); }
+    #r-tagline { font-size: clamp(0.95rem, 1.5vw, 1.08rem); }
+    .pane { padding: clamp(16px, 3vw, 26px) clamp(18px, 4vw, 34px); }
+    .r-foot { padding: clamp(12px, 2vw, 18px) clamp(18px, 4vw, 34px); }
+    #twist-row { padding: clamp(12px, 2vw, 16px) clamp(18px, 4vw, 34px) clamp(14px, 2vw, 20px); }
+
+    /* ── Tablet (641px – 900px) ────────────────────────────────── */
+    @media (min-width: 641px) and (max-width: 900px) {
+      #main-stage {
+        grid-template-columns: 220px 1fr;
+        padding: 24px 24px 40px;
+      }
+      #glass-panel { padding: 12px 16px 24px; }
+      #glass-wrap  { width: 160px; height: 190px; }
+      #glass-svg   { width: 160px; height: 190px; }
+      #input-panel { padding: 12px 0 24px 28px; }
+    }
+
+    /* ── Mobile (≤ 640px) ──────────────────────────────────────── */
+    @media (max-width: 640px) {
+      header {
+        padding: 24px 20px 0;
+      }
+      .wordmark { font-size: 1.5rem; }
+      .header-rule { margin: 0 10px; }
+
+      #main-stage {
+        grid-template-columns: 1fr;
+        padding: 20px 16px 32px;
+        gap: 0;
+        max-width: 100%;
+      }
+
+      /* Glass panel stacks on top, horizontal bar style */
+      #glass-panel {
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        padding: 12px 16px 20px;
+        border-right: none;
+        border-bottom: 1px solid var(--rim);
+      }
+
+      #glass-wrap { width: 100px; height: 120px; flex-shrink: 0; }
+      #glass-svg  { width: 100px; height: 120px; }
+
+      /* Info wrapper sits to the right of the glass */
+      #glass-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 10px;
+      }
+      #dots { margin-top: 0; flex-wrap: wrap; max-width: 90px; gap: 7px; }
+      #status {
+        font-size: 0.52rem;
+        letter-spacing: 0.08em;
+        text-align: left;
+        max-width: 160px;
+      }
+
+      /* Input panel: full width below glass */
+      #input-panel {
+        padding: 20px 0 0;
+      }
+
+      #ingredient-row { gap: 6px; }
+      #ing-input { font-size: 0.85rem; padding: 10px 12px; }
+      #add-btn   { width: 40px; height: 40px; font-size: 1.4rem; }
+
+      /* Chips wrap naturally on narrow screens */
+      #chips { gap: 6px; }
+      .chip  { font-size: 0.76rem; padding: 5px 10px; }
+
+      /* Context */
+      #ctx { height: 64px; font-size: 0.82rem; }
+
+      /* Mix button */
+      #mix-btn { font-size: 0.78rem; padding: 13px 18px; margin-top: 14px; }
+
+      /* Build Complexity: 2×2 grid on small screens */
+      #build-btns { flex-wrap: wrap; }
+      .build-btn  { flex: 1 1 calc(50% - 4px); min-width: 0; }
+
+      /* Recipe card */
+      #recipe-card,
+      #error-card { padding: 0 12px; }
+
+      .r-head { padding: 22px 18px 16px; }
+      #r-name { font-size: 1.7rem; }
+      #r-tagline { font-size: 0.95rem; }
+
+      .tab-btn { padding: 11px 14px; font-size: 0.9rem; }
+
+      .pane { padding: 18px 18px; }
+      .concept-txt { font-size: 0.9rem; }
+      .served-box  { padding: 12px 14px; }
+
+      .r-foot {
+        padding: 14px 18px;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+      .foot-btn { flex: 1 1 auto; text-align: center; padding: 9px 10px; font-size: 0.72rem; }
+
+      #twist-row { padding: 14px 18px 16px; }
+      .twist-btns { gap: 6px; }
+      .twist-btn  { font-size: 0.7rem; padding: 6px 11px; }
+
+      .problem-block { padding: 14px 16px; }
+      .build-block   { padding: 14px 16px; }
+      .step-t { font-size: 0.84rem; }
+    }
+
+    /* Very small phones (≤380px) */
+    @media (max-width: 380px) {
+      #build-btns { flex-wrap: wrap; }
+      .build-btn  { flex: 1 1 calc(50% - 4px); }
+      .bname { font-size: 0.65rem; }
+      .bsub  { font-size: 0.56rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────────────────── -->
+<header>
+  <div class="wordmark">The Idea <em>Mixer</em><span class="header-rule"></span><span class="header-sub">Creativity Studio</span></div>
+</header>
+
+<!-- ── Main stage ─────────────────────────────────────────────────────── -->
+<div id="main-stage">
+
+  <!-- Glass panel -->
+  <div id="glass-panel">
+    <div id="glass-wrap">
+      <svg id="glass-svg" viewBox="0 0 210 250" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+        <defs>
+          <clipPath id="gc">
+            <polygon points="36,26 174,26 107,150 103,150"/>
+          </clipPath>
+        </defs>
+
+        <!-- Liquid layers (liq0 = ingredient 1, bottom) -->
+        <g clip-path="url(#gc)">
+          <rect id="liq5" class="liq" x="36" y="24"  width="138" height="21" fill="var(--liq-5)"/>
+          <rect id="liq4" class="liq" x="36" y="45"  width="138" height="21" fill="var(--liq-4)"/>
+          <rect id="liq3" class="liq" x="36" y="66"  width="138" height="21" fill="var(--liq-3)"/>
+          <rect id="liq2" class="liq" x="36" y="87"  width="138" height="21" fill="var(--liq-2)"/>
+          <rect id="liq1" class="liq" x="36" y="108" width="138" height="21" fill="var(--liq-1)"/>
+          <rect id="liq0" class="liq" x="36" y="129" width="138" height="21" fill="var(--liq-0)"/>
+        </g>
+
+        <!-- Glass bowl outline -->
+        <polygon points="36,26 174,26 107,150 103,150"
+          fill="none" stroke="#6B5040" stroke-width="1.6" stroke-linejoin="round"/>
+        <line x1="35" y1="26" x2="175" y2="26" stroke="#3D2E22" stroke-width="2.2" stroke-linecap="round"/>
+        <!-- Glass highlight -->
+        <line x1="48" y1="32" x2="88" y2="144" stroke="white" stroke-width="5" stroke-linecap="round" opacity="0.18"/>
+
+        <!-- Salt rim -->
+        <g id="salt-g">
+          <circle cx="42"  cy="22.5" r="2.5" fill="#FAF8F3" stroke="var(--rim)" stroke-width="0.6"/>
+          <circle cx="55"  cy="20.5" r="2"   fill="var(--bg)" stroke="var(--rim)" stroke-width="0.6"/>
+          <circle cx="67"  cy="19"   r="2.5" fill="#FAF8F3" stroke="var(--rim)" stroke-width="0.6"/>
+          <circle cx="79"  cy="18"   r="2"   fill="var(--bg)" stroke="var(--rim)" stroke-width="0.6"/>
+          <circle cx="91"  cy="17.5" r="2.5" fill="#FAF8F3" stroke="var(--rim)" stroke-width="0.6"/>
+          <circle cx="105" cy="17"   r="2"   fill="var(--bg)" stroke="var(--rim)" stroke-width="0.6"/>
+          <circle cx="119" cy="17.5" r="2.5" fill="#FAF8F3" stroke="var(--rim)" stroke-width="0.6"/>
+          <circle cx="131" cy="18"   r="2"   fill="var(--bg)" stroke="var(--rim)" stroke-width="0.6"/>
+          <circle cx="143" cy="19"   r="2.5" fill="#FAF8F3" stroke="var(--rim)" stroke-width="0.6"/>
+          <circle cx="155" cy="20.5" r="2"   fill="var(--bg)" stroke="var(--rim)" stroke-width="0.6"/>
+          <circle cx="167" cy="22.5" r="2.5" fill="#FAF8F3" stroke="var(--rim)" stroke-width="0.6"/>
+        </g>
+
+        <!-- Lime wheel -->
+        <g id="lime-g">
+          <circle cx="168" cy="26" r="13" fill="#90B848" stroke="#3D2E22" stroke-width="1.1"/>
+          <line x1="168" y1="13" x2="168" y2="39" stroke="#5A7A2A" stroke-width="0.8"/>
+          <line x1="155" y1="26" x2="181" y2="26" stroke="#5A7A2A" stroke-width="0.8"/>
+          <line x1="159" y1="17" x2="177" y2="35" stroke="#5A7A2A" stroke-width="0.8"/>
+          <line x1="177" y1="17" x2="159" y2="35" stroke="#5A7A2A" stroke-width="0.8"/>
+          <path d="M168 26 L168 13 A13 13 0 0 1 177 17 Z" fill="rgba(255,255,255,0.18)"/>
+          <rect x="156" y="25" width="12" height="2.5" rx="1.2" fill="#3D2E22"/>
+        </g>
+
+        <!-- Stem & base -->
+        <line x1="105" y1="150" x2="105" y2="220" stroke="#3D2E22" stroke-width="2.8" stroke-linecap="round"/>
+        <line x1="78"  y1="222" x2="132" y2="222" stroke="#3D2E22" stroke-width="2.8" stroke-linecap="round"/>
+        <line x1="95"  y1="219" x2="115" y2="219" stroke="#3D2E22" stroke-width="2.8" stroke-linecap="round"/>
+
+        <!-- Bubbles (JS-managed) -->
+        <g id="bubbles" clip-path="url(#gc)"></g>
+      </svg>
+    </div>
+
+    <div id="glass-info">
+      <div id="dots">
+        <div class="dot" data-i="0"></div>
+        <div class="dot" data-i="1"></div>
+        <div class="dot" data-i="2"></div>
+        <div class="dot" data-i="3"></div>
+        <div class="dot" data-i="4"></div>
+        <div class="dot" data-i="5"></div>
+      </div>
+      <div id="status">GLASS IS EMPTY — ADD YOUR FIRST IDEA</div>
+    </div>
+  </div>
+
+  <!-- Input panel -->
+  <div id="input-panel">
+    <div class="section-label">Your Ingredients</div>
+
+    <div id="ingredient-row">
+      <input id="ing-input" type="text"
+        placeholder="e.g. jazz, machine learning, small towns…"
+        maxlength="36" autocomplete="off"/>
+      <button id="add-btn" title="Add ingredient">+</button>
+    </div>
+
+    <div id="flash"></div>
+    <div id="chips"></div>
+
+    <div id="ctx-row">
+      <div class="section-label" style="margin-bottom:0">Context</div>
+      <span class="opt-badge">optional</span>
+    </div>
+    <textarea id="ctx" placeholder="Who is this for? What problem do you want to solve? Any constraints or setting?"></textarea>
+
+    <!-- Advanced Settings toggle -->
+    <div id="adv-toggle">
+      <span id="adv-arrow" class="adv-arrow">▸</span>
+      <span class="adv-lbl">Advanced</span>
+    </div>
+
+    <!-- Advanced body -->
+    <div id="adv-body">
+      <!-- Build Complexity -->
+      <div class="section-label" style="margin-top:14px;margin-bottom:9px">Build Complexity</div>
+      <div id="build-btns">
+        <button class="build-btn active-shoot" data-diff="Easy">
+          <span class="bicon">🥃</span>
+          <span class="bname">Shoot</span>
+          <span class="bsub">Easy</span>
+        </button>
+        <button class="build-btn" data-diff="Moderate">
+          <span class="bicon">🍸</span>
+          <span class="bname">Cocktail</span>
+          <span class="bsub">Moderate</span>
+        </button>
+        <button class="build-btn" data-diff="Hard">
+          <span class="bicon">🛢</span>
+          <span class="bname">Barrel-Aged</span>
+          <span class="bsub">Hard</span>
+        </button>
+        <button class="build-btn" data-diff="Any">
+          <span class="bicon">✦</span>
+          <span class="bname">Any</span>
+          <span class="bsub">Surprise me</span>
+        </button>
+      </div>
+
+      <!-- Wildness slider -->
+      <div class="vibe-wrap">
+        <div class="section-label" style="margin-bottom:8px">Wildness</div>
+        <div id="vibe-labels">
+          <span class="vibe-sage">🌿 Practical</span>
+          <span class="vibe-muted">Balanced</span>
+          <span class="vibe-rose">🔥 Innovative</span>
+        </div>
+        <input type="range" id="vibe-slider" min="0" max="100" value="50"/>
+        <div id="vibe-value">Balanced</div>
+      </div>
+    </div>
+
+    <button id="mix-btn" disabled>Add Ideas to Mix</button>
+  </div>
+</div>
+
+<!-- ── Error card ─────────────────────────────────────────────────────── -->
+<div id="error-card">
+  <div class="error-inner">
+    <div class="error-icon">🥃</div>
+    <div class="error-title">The shaker slipped</div>
+    <div class="error-body" id="error-body">Something went wrong. Please try again.</div>
+    <button class="error-retry" id="error-retry-btn">Try again</button>
+  </div>
+</div>
+
+<!-- ── Recipe card ────────────────────────────────────────────────────── -->
+<div id="recipe-card">
+  <div class="recipe-wrap">
+
+    <div class="r-head">
+      <div class="r-eyebrow">Your Signature Creation</div>
+      <div id="r-name"></div>
+      <div id="r-tagline"></div>
+      <div id="r-badges"></div>
+      <div id="r-pills"></div>
+    </div>
+
+    <div class="r-tabs">
+      <button class="tab-btn on"  data-tab="concept">The Concept</button>
+      <button class="tab-btn"     data-tab="instructions">Instructions</button>
+    </div>
+
+    <div class="pane on" id="pane-concept">
+      <p class="concept-txt" id="r-concept"></p>
+      <div class="served-box">
+        <div class="served-lbl">Served For</div>
+        <p class="served-txt" id="r-who"></p>
+      </div>
+    </div>
+
+    <div class="pane" id="pane-instructions">
+      <div class="problem-block">
+        <div class="block-lbl">The Problem</div>
+        <p class="problem-txt" id="r-problem"></p>
+      </div>
+      <div class="build-block">
+        <div class="block-lbl">How to Build It</div>
+        <div class="steps">
+          <div class="step"><div class="step-n">1</div><p class="step-t" id="r-step1"></p></div>
+          <div class="step"><div class="step-n">2</div><p class="step-t" id="r-step2"></p></div>
+          <div class="step"><div class="step-n">3</div><p class="step-t" id="r-step3"></p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="r-foot">
+      <button class="foot-btn primary" id="remix-btn">Mix Again</button>
+      <button class="foot-btn" id="copy-btn">Copy Recipe</button>
+      <button class="foot-btn" id="new-btn">New Drink</button>
+    </div>
+
+    <!-- Remix with a Twist -->
+    <div id="twist-row">
+      <div class="twist-lbl">Remix with a twist</div>
+      <div class="twist-btns">
+        <button class="twist-btn" data-constraint="easier">🟢 Make it easier to build</button>
+        <button class="twist-btn" data-constraint="wilder">🔥 Make it wilder</button>
+        <button class="twist-btn" data-constraint="practical">🔧 Make it more practical</button>
+        <button class="twist-btn" data-constraint="focused">🎯 Make it more focused</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Shaker overlay ──────────────────────────────────────────────────── -->
+<div id="shaker-overlay">
+  <svg id="shaker-svg" viewBox="0 0 100 155" xmlns="http://www.w3.org/2000/svg">
+    <rect x="18" y="28" width="64" height="26" rx="7"  fill="#8A4A2A"/>
+    <rect x="28" y="18" width="44" height="14" rx="5"  fill="#6B3820"/>
+    <rect x="40" y="10" width="20" height="10" rx="4"  fill="#5A2E16"/>
+    <rect x="22" y="52" width="56" height="90" rx="9"  fill="#A8623A"/>
+    <rect x="30" y="58" width="9"  height="70" rx="4.5" fill="rgba(255,255,255,0.16)"/>
+    <circle cx="65" cy="78"  r="2.2" fill="rgba(255,255,255,0.22)"/>
+    <circle cx="65" cy="95"  r="2.2" fill="rgba(255,255,255,0.22)"/>
+    <circle cx="65" cy="112" r="2.2" fill="rgba(255,255,255,0.22)"/>
+    <rect x="16" y="136" width="68" height="6" rx="3" fill="#8A4A2A"/>
+  </svg>
+  <div class="shaker-heading">Shaking your mix…</div>
+  <div class="shaker-sub" id="shaker-sub"></div>
+</div>
+
+<script>
+// ────────────────────────────────────────────────────────────────────────
+// STATE
+// ────────────────────────────────────────────────────────────────────────
+let ingredients     = [];
+let recipe          = null;
+let cooling         = false;
+let coolTimer       = null;
+let flashTimer      = null;
+
+// Advanced settings
+let difficulty       = 'Easy';
+let vibeTemp         = 0.7;
+let remixConstraint  = null;
+
+const CHIP_COLORS = [
+  { bg: '#F5E4CA', fg: '#7A4A1E' },
+  { bg: '#DDF0BE', fg: '#3E6018' },
+  { bg: '#F8ECC0', fg: '#7A5C10' },
+  { bg: '#EEC8D4', fg: '#7A2848' },
+  { bg: '#C4DCF0', fg: '#1E4870' },
+  { bg: '#C4E8D0', fg: '#1A5030' },
+];
+const LIQUID_COLORS = ['#C8904A','#90B848','#D4B038','#B06880','#6898C0','#90C0A0'];
+
+const BUILD_ACTIVE = { Easy:'active-shoot', Moderate:'active-cocktail', Hard:'active-barrel', Any:'active-any' };
+
+// ────────────────────────────────────────────────────────────────────────
+// DOM
+// ────────────────────────────────────────────────────────────────────────
+const $ingInput  = document.getElementById('ing-input');
+const $addBtn    = document.getElementById('add-btn');
+const $chips     = document.getElementById('chips');
+const $flash     = document.getElementById('flash');
+const $mixBtn    = document.getElementById('mix-btn');
+const $status    = document.getElementById('status');
+const $shaker    = document.getElementById('shaker-overlay');
+const $shakerSub = document.getElementById('shaker-sub');
+const $recipe    = document.getElementById('recipe-card');
+const $error     = document.getElementById('error-card');
+const $errBody   = document.getElementById('error-body');
+const $remixBtn  = document.getElementById('remix-btn');
+const $twistRow  = document.getElementById('twist-row');
+
+// ────────────────────────────────────────────────────────────────────────
+// VALIDATION
+// ────────────────────────────────────────────────────────────────────────
+function norm(s) { return s.replace(/\s+/g,'').toLowerCase(); }
+
+function validate(val) {
+  const t = val.trim();
+  if (t.length < 2)          return 'Too short — at least 2 characters.';
+  if (!/[a-zA-Z]/.test(t))   return 'Must contain at least one letter.';
+  if (t.length > 36)          return 'Too long — 36 characters max.';
+  if (ingredients.length >= 6) return 'Glass is full! Max 6 ingredients.';
+  const n = norm(t);
+  for (const e of ingredients) {
+    const en = norm(e);
+    if (n === en || n.includes(en) || en.includes(n))
+      return `Too similar to "${e}" — try something different.`;
+  }
+  return null;
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// FLASH
+// ────────────────────────────────────────────────────────────────────────
+function flash(msg) {
+  clearTimeout(flashTimer);
+  $flash.textContent = msg;
+  $flash.classList.add('show');
+  flashTimer = setTimeout(() => $flash.classList.remove('show'), 2800);
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// ADD INGREDIENT
+// ────────────────────────────────────────────────────────────────────────
+function addIngredient() {
+  const val = $ingInput.value;
+  const err = validate(val);
+  if (err) { flash(err); return; }
+
+  const t   = val.trim();
+  const idx = ingredients.length;
+  ingredients.push(t);
+  $ingInput.value = '';
+
+  renderChips();
+  fillLayer(idx);
+
+  document.getElementById('salt-g').style.opacity = '1';
+
+  const lime = document.getElementById('lime-g');
+  if (idx >= 1) { lime.style.opacity = '1'; spinLime(); }
+  if (idx >= 2) spawnBubbles(idx - 1);
+
+  syncUI();
+  $ingInput.focus();
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// CHIPS
+// ────────────────────────────────────────────────────────────────────────
+function renderChips() {
+  $chips.innerHTML = '';
+  ingredients.forEach((txt, i) => {
+    const c   = CHIP_COLORS[i % CHIP_COLORS.length];
+    const div = document.createElement('div');
+    div.className = 'chip';
+    div.style.cssText = `background:${c.bg};color:${c.fg}`;
+    if (i < ingredients.length - 1) {
+      div.style.animation = 'none';
+      div.style.opacity   = '1';
+      div.style.transform = 'scale(1)';
+    }
+    div.innerHTML = `<span>${esc(txt)}</span>
+      <button class="chip-x" data-i="${i}" title="Remove">✕</button>`;
+    $chips.appendChild(div);
+  });
+  $chips.querySelectorAll('.chip-x').forEach(btn => {
+    btn.addEventListener('click', () => removeAt(+btn.dataset.i));
+  });
+}
+
+function removeAt(idx) {
+  ingredients.splice(idx, 1);
+  renderChips();
+
+  for (let i = 0; i < 6; i++) {
+    const r = document.getElementById(`liq${i}`);
+    r.style.transition = 'none';
+    r.classList.remove('on');
+  }
+  requestAnimationFrame(() => {
+    for (let i = 0; i < 6; i++) document.getElementById(`liq${i}`).style.transition = '';
+    for (let i = 0; i < ingredients.length; i++) fillLayer(i);
+  });
+
+  if (ingredients.length < 2) document.getElementById('lime-g').style.opacity = '0';
+  if (ingredients.length < 1) document.getElementById('salt-g').style.opacity = '0';
+  if (ingredients.length < 3) document.getElementById('bubbles').innerHTML = '';
+
+  syncUI();
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// GLASS
+// ────────────────────────────────────────────────────────────────────────
+function fillLayer(idx) {
+  setTimeout(() => {
+    const r = document.getElementById(`liq${idx}`);
+    if (r) r.classList.add('on');
+  }, 80);
+}
+
+let limeRot = 0, limeUp = false;
+function spinLime() {
+  const lime = document.getElementById('lime-g');
+  lime.style.transition = 'none';
+  lime.style.transform  = `rotate(${limeRot}deg) translateY(0px)`;
+  lime.getBoundingClientRect();
+  limeRot += 45;
+  limeUp   = !limeUp;
+  lime.style.transition = 'transform 0.55s cubic-bezier(.34,1.56,.64,1)';
+  lime.style.transform  = `rotate(${limeRot}deg) translateY(${limeUp ? -4 : 0}px)`;
+}
+
+function spawnBubbles(count) {
+  const g = document.getElementById('bubbles');
+  for (let i = 0; i < Math.min(count, 5); i++) {
+    setTimeout(() => {
+      const b = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      b.setAttribute('cx', 65 + Math.random() * 75);
+      b.setAttribute('cy', 135 + Math.random() * 10);
+      b.setAttribute('r',  1.5 + Math.random() * 2);
+      b.setAttribute('fill','rgba(255,255,255,0.52)');
+      b.style.animation = `bubbleRise ${1.4 + Math.random() * 1.2}s ease forwards`;
+      g.appendChild(b);
+      setTimeout(() => b.remove(), 2800);
+    }, i * 200);
+  }
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// SYNC UI
+// ────────────────────────────────────────────────────────────────────────
+const STATUS = [
+  'GLASS IS EMPTY — ADD YOUR FIRST IDEA',
+  '1 OF 6 IDEAS POURED','2 OF 6 IDEAS POURED','3 OF 6 IDEAS POURED',
+  '4 OF 6 IDEAS POURED','5 OF 6 IDEAS POURED — ONE MORE SLOT!',
+  '✦ GLASS IS FULL — READY TO MIX!',
+];
+function syncUI() {
+  const n = ingredients.length;
+  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('on', i < n));
+  $status.textContent = STATUS[n];
+  $status.classList.toggle('full', n === 6);
+  $mixBtn.disabled = n < 2 || cooling;
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// ADVANCED SETTINGS
+// ────────────────────────────────────────────────────────────────────────
+document.getElementById('adv-toggle').addEventListener('click', () => {
+  const body  = document.getElementById('adv-body');
+  const arrow = document.getElementById('adv-arrow');
+  const open  = body.style.display !== 'block';
+  body.style.display = open ? 'block' : 'none';
+  arrow.classList.toggle('open', open);
+});
+
+document.querySelectorAll('.build-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.build-btn').forEach(b =>
+      b.classList.remove('active-shoot','active-cocktail','active-barrel','active-any'));
+    difficulty = btn.dataset.diff;
+    btn.classList.add(BUILD_ACTIVE[difficulty]);
+  });
+});
+
+document.getElementById('vibe-slider').addEventListener('input', updateVibeLabel);
+function updateVibeLabel() {
+  const val = parseInt(document.getElementById('vibe-slider').value);
+  vibeTemp = 0.4 + (val / 100) * 0.6;
+  const label =
+    val <= 20 ? '🌿 Practical' :
+    val <= 40 ? 'Mostly Practical' :
+    val <= 60 ? 'Balanced' :
+    val <= 80 ? 'Mostly Innovative' : '🔥 Innovative';
+  document.getElementById('vibe-value').textContent = label;
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// MIX
+// ────────────────────────────────────────────────────────────────────────
+async function mix() {
+  if (ingredients.length < 2 || cooling) return;
+
+  const ctx = document.getElementById('ctx').value.trim();
+
+  // Compute difficulty instruction
+  const diffInstruction = difficulty === 'Any'
+    ? 'Any buildability level is acceptable.'
+    : `The idea MUST have a buildability of "${difficulty}". Prioritise this above all other considerations.`;
+
+  // Compute vibe instruction
+  const vibeInstruction = vibeTemp <= 0.55
+    ? 'Stay grounded and realistic — practical combinations only, no far-fetched concepts.'
+    : vibeTemp >= 0.85
+    ? 'Be bold and unexpected — push for surprising, unconventional combinations that still make sense.'
+    : 'Balance creativity with practicality.';
+
+  // Compute constraint instruction and reset
+  const constraintInstruction = remixConstraint ? {
+    easier:    'The previous idea was too complex. Simplify significantly — buildable in a weekend with no-code tools.',
+    wilder:    'The previous idea was too safe. Push the conceptual leap further in a more surprising direction.',
+    practical: 'Make it more grounded. Focus on a specific, narrow use case rather than a broad platform.',
+    focused:   'Narrow to one very specific problem for one very specific person. Resist being broad.',
+  }[remixConstraint] : '';
+  remixConstraint = null;
+
+  $shakerSub.textContent =
+    `${ingredients.length} ingredient${ingredients.length > 1 ? 's' : ''}: ${ingredients.join(', ')}`;
+  $shaker.classList.add('show');
+  $recipe.classList.remove('show'); $recipe.style.display = 'none';
+  $error.classList.remove('show');
+  $twistRow.classList.remove('show');
+
+  try {
+    const res = await fetch('/api/mix', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        topics: ingredients,
+        context: ctx,
+        temperature: parseFloat(vibeTemp.toFixed(2)),
+        diffInstruction,
+        vibeInstruction,
+        constraintInstruction,
+      }),
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    $shaker.classList.remove('show');
+
+    if (!data.ok) { showError(data.error || 'Something went wrong. Please try again.'); return; }
+
+    recipe = data;
+    renderRecipe(data);
+    startCooldown();
+
+  } catch (e) {
+    console.error(e);
+    $shaker.classList.remove('show');
+    showError('The shaker slipped — something went wrong. Please try again.');
+  }
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// RENDER RECIPE
+// ────────────────────────────────────────────────────────────────────────
+function renderRecipe(d) {
+  document.getElementById('r-name').innerHTML    = boldify(d.name);
+  document.getElementById('r-tagline').innerHTML = boldify(d.tagline);
+
+  document.getElementById('r-badges').innerHTML =
+    `<div class="rating-bar">
+      <div class="rating-cell">
+        <div class="rating-lbl">Buildability</div>
+        <div class="rating-val ${ratingCls(d.buildability,{Easy:'g',Moderate:'am',Hard:'ro'})}">${esc(d.buildability)}</div>
+      </div>
+      <div class="rating-cell">
+        <div class="rating-lbl">Fun Factor</div>
+        <div class="rating-val ${ratingCls(d.fun_factor,{Delightful:'g',Interesting:'am',Plain:'ro'})}">${esc(d.fun_factor)}</div>
+      </div>
+      <div class="rating-cell">
+        <div class="rating-lbl">Usefulness</div>
+        <div class="rating-val ${ratingCls(d.usefulness,{Habitual:'g',Occasional:'am',Unlikely:'ro'})}">${esc(d.usefulness)}</div>
+      </div>
+    </div>`;
+
+  document.getElementById('r-pills').innerHTML =
+    ingredients.map(i => `<span class="r-pill">${esc(i)}</span>`).join('');
+
+  document.getElementById('r-concept').innerHTML  = boldify(d.concept);
+  document.getElementById('r-who').innerHTML      = boldify(d.who);
+  document.getElementById('r-problem').innerHTML  = boldify(d.problem);
+  document.getElementById('r-step1').innerHTML    = boldify(d.step1);
+  document.getElementById('r-step2').innerHTML    = boldify(d.step2);
+  document.getElementById('r-step3').innerHTML    = boldify(d.step3);
+
+  switchTab('concept');
+
+  $recipe.style.display = 'block';
+  $recipe.classList.add('show');
+  $twistRow.classList.add('show');
+
+  requestAnimationFrame(() => {
+    const top = $recipe.getBoundingClientRect().top + window.scrollY - 16;
+    window.scrollTo({ top, behavior: 'smooth' });
+  });
+}
+
+function ratingCls(value, map) {
+  return map[value] || '';
+}
+function boldify(t) {
+  if (!t) return '';
+  return esc(t).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// ERROR
+// ────────────────────────────────────────────────────────────────────────
+function showError(msg) {
+  $errBody.textContent = msg;
+  $error.classList.add('show');
+  setTimeout(() => $error.scrollIntoView({ behavior:'smooth', block:'start' }), 100);
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// TABS
+// ────────────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+  document.getElementById('pane-concept').classList.toggle('on',       name === 'concept');
+  document.getElementById('pane-instructions').classList.toggle('on',  name === 'instructions');
+}
+document.querySelectorAll('.tab-btn').forEach(b => {
+  b.addEventListener('click', () => switchTab(b.dataset.tab));
+});
+
+// ────────────────────────────────────────────────────────────────────────
+// COOLDOWN
+// ────────────────────────────────────────────────────────────────────────
+function startCooldown() {
+  cooling = true;
+  $remixBtn.disabled = true;
+  let s = 3;
+  $remixBtn.textContent = `Mix Again (${s}s)`;
+  coolTimer = setInterval(() => {
+    s--;
+    if (s <= 0) {
+      clearInterval(coolTimer);
+      cooling = false;
+      $remixBtn.disabled    = false;
+      $remixBtn.textContent = 'Mix Again';
+      syncUI();
+    } else {
+      $remixBtn.textContent = `Mix Again (${s}s)`;
+    }
+  }, 1000);
+  syncUI();
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// FOOTER ACTIONS
+// ────────────────────────────────────────────────────────────────────────
+document.getElementById('remix-btn').addEventListener('click', () => { if (!cooling) mix(); });
+
+document.getElementById('copy-btn').addEventListener('click', function() {
+  if (!recipe) return;
+  const lines = [
+    `THE IDEA MIXER — ${recipe.name.replace(/\*\*/g,'').toUpperCase()}`,
+    `"${recipe.tagline.replace(/\*\*/g,'')}"`,
+    '',
+    `Ingredients: ${ingredients.join(', ')}`,
+    '',
+    `Buildability: ${recipe.buildability}  ·  Fun Factor: ${recipe.fun_factor}  ·  Usefulness: ${recipe.usefulness}`,
+    '',
+    '— THE CONCEPT —',
+    recipe.concept.replace(/\*\*/g,''),
+    '',
+    `Served For: ${recipe.who.replace(/\*\*/g,'')}`,
+    '',
+    '— HOW TO BUILD IT —',
+    `The Problem: ${recipe.problem.replace(/\*\*/g,'')}`,
+    '',
+    `1. ${recipe.step1.replace(/\*\*/g,'')}`,
+    `2. ${recipe.step2.replace(/\*\*/g,'')}`,
+    `3. ${recipe.step3.replace(/\*\*/g,'')}`,
+    '',
+    'Mixed with The Idea Mixer — Creativity Studio',
+  ];
+  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+    const orig = this.textContent;
+    this.textContent = 'Copied!';
+    setTimeout(() => this.textContent = orig, 2000);
+  }).catch(() => alert('Could not copy. Please select and copy manually.'));
+});
+
+document.getElementById('new-btn').addEventListener('click', resetAll);
+
+document.getElementById('error-retry-btn').addEventListener('click', () => {
+  $error.classList.remove('show');
+  mix();
+});
+
+// Remix with a Twist buttons
+document.querySelectorAll('.twist-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    remixConstraint = btn.dataset.constraint;
+    mix();
+  });
+});
+
+function resetAll() {
+  ingredients = [];
+  recipe      = null;
+  clearInterval(coolTimer);
+  cooling = false;
+
+  $ingInput.value = '';
+  document.getElementById('ctx').value = '';
+  $chips.innerHTML = '';
+
+  for (let i = 0; i < 6; i++) {
+    const r = document.getElementById(`liq${i}`);
+    r.style.transition = 'none';
+    r.classList.remove('on');
+  }
+  document.getElementById('salt-g').style.opacity = '0';
+  document.getElementById('lime-g').style.opacity = '0';
+  document.getElementById('bubbles').innerHTML = '';
+  limeRot = 0; limeUp = false;
+
+  $recipe.classList.remove('show'); $recipe.style.display = 'none';
+  $error.classList.remove('show');
+  $twistRow.classList.remove('show');
+  $remixBtn.disabled    = false;
+  $remixBtn.textContent = 'Mix Again';
+
+  syncUI();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  $ingInput.focus();
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// EVENTS + INIT
+// ────────────────────────────────────────────────────────────────────────
+$ingInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addIngredient(); } });
+$addBtn.addEventListener('click', addIngredient);
+$mixBtn.addEventListener('click', mix);
+
+syncUI();
+</script>
+</body>
+</html>
