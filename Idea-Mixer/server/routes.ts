@@ -1,10 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function registerRoutes(
   httpServer: Server,
@@ -95,19 +93,9 @@ Respond ONLY in valid JSON. No markdown fences. No backticks. No extra text.`;
       : 0.7;
 
     try {
-      const message = await anthropic.messages.create({
-        model:       "claude-sonnet-4-6",
-        max_tokens:  1200,
-        temperature: apiTemp,
-        messages:    [{ role: "user", content: prompt }],
-      });
-
-      const textContent = message.content.find((c) => c.type === "text");
-      if (!textContent || textContent.type !== "text") {
-        throw new Error("No text content in response");
-      }
-
-      let jsonStr = textContent.text.trim();
+     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+     const result = await model.generateContent(prompt);
+    let jsonStr = result.response.text().trim();
       jsonStr = jsonStr.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```$/, "");
 
       const data = JSON.parse(jsonStr);
